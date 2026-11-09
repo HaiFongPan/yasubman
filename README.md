@@ -127,46 +127,43 @@ environment:
 
 `/api/health` 不受认证保护，用于容器健康检查。
 
-## 只读 demo（Cloudflare Pages，免费）
+## 只读 demo（Cloudflare Workers，免费）
 
-想给别人看界面又不想暴露自己的数据，可以部署一份不含任何存储的演示版：前端静态资源 + 一个把 API 换成构建时快照的 Pages Function。
-
-### 方式一：Cloudflare 后台连 GitHub（推荐，push 即更新）
-
-1. Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**，选 `HaiFongPan/yasubman`、分支 `main`
-2. 构建设置：
-   - Build command：`npm run build:web`（只构建前端，不需要服务端 bundle）
-   - Build output directory：`dist`
-   - 环境变量：`NODE_VERSION` = `24`
-3. 项目名任意（如 `yasubman-demo`）。仓库里没有 `wrangler.toml`，所以不会出现“项目名不匹配”的报错。
-
-`functions/` 目录会被自动识别成 Pages Functions。`demo/snapshot.json` 已提交仓库，构建时不需要生成快照，也就不需要 better-sqlite3 的原生编译。
-
-如果 `npm ci` 在安装阶段因 better-sqlite3 的 `node-gyp rebuild` 失败，加一个环境变量 `NPM_FLAGS` = `--ignore-scripts` 即可：demo 的构建与运行都不需要这个原生模块。
-
-### 方式二：本地 CLI
+想给别人看界面又不想暴露自己的数据，可以部署一份不含任何存储的演示版：静态前端 + 一个把 API 换成构建时快照的 Worker。静态资源请求不消耗额度，`/api/*` 才走 Worker。
 
 ```bash
-npx wrangler login      # 浏览器 OAuth，一次即可
-npm run demo:deploy     # 构建并发布（项目名 yasubman-demo）
+npm run demo:snapshot   # 生成 demo/snapshot.json（脱敏示例数据 + 12 个月历史流水）
+npm run demo:deploy     # 构建前端 + wrangler deploy
 ```
 
-改了示例数据或汇率后需要用 `npm run demo:snapshot` 重新生成 `demo/snapshot.json`；走方式一的话，提交这个文件后 CF 会自动重建。本地预览完整 demo（含 Functions）：`npm run demo:dev` → http://localhost:4173。
+`wrangler.jsonc` 已经配好：`assets.directory = ./dist`、`not_found_handling = single-page-application`（SPA 兜底）、`run_worker_first = ["/api/*"]`（只有 API 进 Worker）。
 
-若 CF 构建在 `npm ci` 阶段因 better-sqlite3 原生编译失败，加环境变量 `NPM_FLAGS=--ignore-scripts`（构建与运行时都不需要这个原生模块）。
+### Git 集成（push 即更新）
 
-演示版的边界：
+Cloudflare Dashboard → **Workers & Pages** → **Create** → 连接 Git 仓库，选 `HaiFongPan/yasubman`：
+
+| 配置项 | 值 |
+| --- | --- |
+| Build command | `npm run build:web` |
+| Deploy command | 保持默认 `npx wrangler deploy` |
+| Root directory | 留空 |
+
+项目名与 `wrangler.jsonc` 里的 `name` 一致（默认 `yasubman-demo`），部署后域名形如 `https://yasubman-demo.<你的子域>.workers.dev`。
+
+`demo/snapshot.json` 已提交仓库，构建时不需要生成快照，也就不需要 better-sqlite3 的原生编译。若 `npm ci` 因它的 `node-gyp rebuild` 失败，加环境变量 `NPM_FLAGS` = `--ignore-scripts`。
+
+### 演示版的边界
 
 | 能力 | 演示版 |
 | --- | --- |
 | 浏览总览 / 订阅 / 统计 / 收据 / 服务库 | 可用（数据为只读快照） |
 | CSV / JSON 导出 | 可用（预生成的快照） |
 | 新增 / 修改 / 删除 | **403**，前端弹「演示模式：数据只读」 |
-| App Store 实时搜索 | 不可用（需联网搜索，快照里没有） |
-| MCP 端点 | 无（静态托管不跑长驻进程） |
+| App Store 实时搜索 | 不可用（需要联网搜索） |
+| MCP 端点 | 无 |
 | 汇率同步 | 不可用（快照内置固定汇率） |
 
-演示数据来自 `server/db.ts` 的脱敏种子（`user@example.com` / 示例银行），每次 `npm run demo:snapshot` 重建；`demo/snapshot.json` 已提交仓库，改动种子后记得重新生成。
+演示数据来自 `server/db.ts` 的脱敏种子（`user@example.com` / 示例银行），每次 `npm run demo:snapshot` 重建；改了种子记得重新生成并提交 `demo/snapshot.json`。
 
 ## 数据结构
 

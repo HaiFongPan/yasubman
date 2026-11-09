@@ -1,21 +1,11 @@
-import snapshot from '../../demo/snapshot.json';
+import snapshot from '../demo/snapshot.json';
 
 /**
- * Cloudflare Pages demo 的只读 API 层。
+ * demo 的只读 API 层（Workers 与 Pages 共用）。
  *
  * 数据来自构建时生成的 demo/snapshot.json（脱敏示例数据），运行时没有任何
  * 存储：GET 读快照，写操作一律 403。
  */
-
-interface Env {
-  ASSETS?: { fetch: (request: Request) => Promise<Response> };
-}
-
-interface Ctx {
-  request: Request;
-  params: Record<string, string | string[] | undefined>;
-  env: Env;
-}
 
 const DEMO_WRITE_ERROR = '演示模式：数据只读，请自建实例（README → 部署到 Ubuntu）';
 
@@ -83,7 +73,7 @@ async function proxyIcon(url: URL): Promise<Response> {
     return json({ error: '仅支持 App Store 图标（*.mzstatic.com）' }, 400);
   }
 
-  const upstream = await fetch(target.toString(), { cf: { cacheTtl: 86_400 } });
+  const upstream = await fetch(target.toString());
   if (!upstream.ok) return json({ error: `图标获取失败 (${upstream.status})` }, 502);
 
   return new Response(upstream.body, {
@@ -122,13 +112,10 @@ function exportResponse(url: URL): Response {
   });
 }
 
-export const onRequest = async (ctx: Ctx): Promise<Response> => {
-  const url = new URL(ctx.request.url);
-  const raw = ctx.params.path;
-  const segments = (Array.isArray(raw) ? raw : String(raw ?? '').split('/')).filter(Boolean);
-  const path = `/${segments.join('/')}`;
+export async function handleDemoApi(request: Request, path: string): Promise<Response> {
+  const url = new URL(request.url);
 
-  if (ctx.request.method !== 'GET' && ctx.request.method !== 'HEAD') {
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
     return json({ error: DEMO_WRITE_ERROR }, 403);
   }
 
@@ -169,4 +156,4 @@ export const onRequest = async (ctx: Ctx): Promise<Response> => {
   }
 
   return json({ error: `演示模式没有实现该接口：${path}` }, 404);
-};
+}

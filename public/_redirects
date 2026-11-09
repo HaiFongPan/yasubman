@@ -1,2 +1,0 @@
-# Cloudflare Pages：SPA 兜底（Functions 与静态资源优先匹配，此处只接管前端路由）
-/* /index.html 200
