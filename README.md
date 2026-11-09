@@ -60,13 +60,12 @@ npm run typecheck
 
 ```bash
 git clone https://github.com/HaiFongPan/yasubman.git yasubman && cd yasubman
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 docker compose logs -f
 ```
 
-默认只监听 `127.0.0.1:3000`，不直接暴露到公网。数据保存在命名卷 `yasubman-data`。
-
-也可以直接用 CI 构建好的多架构镜像（`ghcr.io/haifongpan/yasubman`，amd64/arm64）：把 compose 里的 `build: .` 换成 `image: ghcr.io/haifongpan/yasubman:latest`，或：
+默认拉取 GHCR 上对应架构的镜像（amd64/arm64）；想用本地源码构建就 `docker compose up -d --build`。不克隆仓库也可以直接跑：
 
 ```bash
 docker run -d --name yasubman --restart unless-stopped \
@@ -74,7 +73,7 @@ docker run -d --name yasubman --restart unless-stopped \
   ghcr.io/haifongpan/yasubman:latest
 ```
 
-首次发布后需要在 GitHub Packages 里把包可见性改为 public（或 `docker login ghcr.io` 后拉取）。
+默认只监听 `127.0.0.1:3000`，不直接暴露到公网。数据保存在命名卷 `yasubman-data`。
 
 需要的环境变量（都有默认值，通常不用配）：
 

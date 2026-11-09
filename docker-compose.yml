@@ -1,7 +1,8 @@
 services:
   yasubman:
+    # 默认用 GHCR 上已发布的镜像；想从源码构建用 docker compose up -d --build
+    image: ghcr.io/haifongpan/yasubman:latest
     build: .
-    image: yasubman:latest
     container_name: yasubman
     restart: unless-stopped
     # 仅绑定本机回环，由 tailscale serve 提供 HTTPS 入口；
