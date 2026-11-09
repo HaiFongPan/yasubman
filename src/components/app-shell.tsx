@@ -12,6 +12,7 @@ import { Money } from '@/components/money';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useStats } from '@/lib/queries';
 import { useSubscriptionDialog } from '@/components/subscription-dialog';
+import { useDemoMode } from '@/lib/queries';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
 
@@ -22,6 +23,18 @@ const NAV: { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/catalog', label: '服务库', icon: Shapes },
   { to: '/settings', label: '设置', icon: Settings2 },
 ];
+
+function DemoBadge() {
+  if (!useDemoMode()) return null;
+  return (
+    <span
+      title="演示部署：数据为只读示例，写操作已禁用"
+      className="ml-1 rounded-[4px] border border-border bg-muted px-1.5 py-0.5 font-mono text-[9px] tracking-[0.1em] text-muted-foreground uppercase"
+    >
+      demo
+    </span>
+  );
+}
 
 function Brand({ variant = 'full' }: { variant?: 'full' | 'mark' }) {
   const mark = (
@@ -50,6 +63,7 @@ function Brand({ variant = 'full' }: { variant?: 'full' | 'mark' }) {
           订阅台账
         </div>
       </div>
+      <DemoBadge />
     </div>
   );
 }

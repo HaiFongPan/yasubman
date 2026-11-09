@@ -33,7 +33,7 @@ yet another subscription manager。自托管的订阅管理与支出统计。
 | 分类 | 6 个内置分类 + 自定义分类（名称、颜色）；删除时关联订阅/服务可转移到「其他」 |
 | 设置 | 基准币种、13 种币种汇率（每日自动同步，可手动刷新）、CSV / JSON 导出、清空数据 |
 | 响应式 | ≥1280 侧边栏 + 表格；768–1279 图标栏 + 卡片；<768 底部导航 + 卡片 |
-| App Store | 按关键词搜索 iOS App，一键填入名称、分类、图标、商店链接；服务库可直接导入，新增订阅时也可在弹窗顶部搜索，保存订阅时自动写入服务库（已存在则复用） |
+| App Store | 按关键词搜索 iOS App，一键填入名称、分类、图标、商店链接；服务库可直接导入；新增订阅的「服务 / 名称」输入框会同时列出服务库与 App Store 结果，选中 App 时保存会自动写入服务库（已存在则复用） |
 | 主题 | 浅色 / 深色，首次访问跟随系统 |
 | MCP | 内置 Streamable HTTP MCP 端点 `/mcp`，Agent 可查询、新增、修改、暂停、删除订阅与服务 |
 
@@ -126,6 +126,32 @@ environment:
 ```
 
 `/api/health` 不受认证保护，用于容器健康检查。
+
+## 只读 demo（Cloudflare Pages，免费）
+
+想给别人看界面又不想暴露自己的数据，可以部署一份不含任何存储的演示版：前端静态资源 + 一个把 API 换成构建时快照的 Pages Function。
+
+```bash
+npm run demo:snapshot   # 生成 demo/snapshot.json（脱敏示例数据 + 12 个月历史流水）
+npm run demo:deploy     # 构建并发布到 Cloudflare Pages
+```
+
+首次部署需要登录一次（浏览器 OAuth）：`npx wrangler login`。项目名在 `wrangler.toml` 里（默认 `yasubman-demo`，对应 `https://yasubman-demo.pages.dev`）。
+
+本地预览完整 demo（含 Functions）：`npm run demo:dev` → http://localhost:4173。
+
+演示版的边界：
+
+| 能力 | 演示版 |
+| --- | --- |
+| 浏览总览 / 订阅 / 统计 / 收据 / 服务库 | 可用（数据为只读快照） |
+| CSV / JSON 导出 | 可用（预生成的快照） |
+| 新增 / 修改 / 删除 | **403**，前端弹「演示模式：数据只读」 |
+| App Store 实时搜索 | 不可用（需联网搜索，快照里没有） |
+| MCP 端点 | 无（静态托管不跑长驻进程） |
+| 汇率同步 | 不可用（快照内置固定汇率） |
+
+演示数据来自 `server/db.ts` 的脱敏种子（`user@example.com` / 示例银行），每次 `npm run demo:snapshot` 重建；`demo/snapshot.json` 已提交仓库，改动种子后记得重新生成。
 
 ## 数据结构
 

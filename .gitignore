@@ -23,3 +23,5 @@ data/
 .local
 .DS_Store
 *.log
+demo/.tmp
+demo/exports/

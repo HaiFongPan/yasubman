@@ -151,6 +151,18 @@ export function useSettings() {
   return useQuery({ queryKey: keys.settings, queryFn: api.settings });
 }
 
+/** 是否运行在只读 demo 部署（Cloudflare Pages 静态版） */
+export function useDemoMode(): boolean {
+  const { data } = useQuery({
+    queryKey: ['health'],
+    queryFn: api.health,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    retry: false,
+  });
+  return data?.demo === true;
+}
+
 export function useSubscriptionMutations() {
   const invalidate = useInvalidateAll();
   const qc = useQueryClient();

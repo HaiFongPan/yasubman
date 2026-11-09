@@ -53,6 +53,7 @@ import {
   useCategoryMutations,
   useSettings,
   useSettingsMutations,
+  useDemoMode,
   useSubscriptionMutations,
   useSubscriptions,
 } from '@/lib/queries';
@@ -131,6 +132,7 @@ function RateRow({ currency, isBase }: { currency: Currency; isBase: boolean }) 
 
 export function SettingsPage() {
   const { data: settings } = useSettings();
+  const demo = useDemoMode();
   const { data: subscriptions = [] } = useSubscriptions({});
   const { data: catalog = [] } = useCatalog();
   const { data: categories = [] } = useCategories();
@@ -194,7 +196,11 @@ export function SettingsPage() {
       <PageHeader
         eyebrow="Settings"
         title="设置"
-        description="汇率自动同步、数据导出与本地存储。所有改动即时生效。"
+        description={
+          demo
+            ? '只读演示：页面数据是构建时快照，写操作会被拒绝。'
+            : '汇率自动同步、数据导出与本地存储。所有改动即时生效。'
+        }
       />
 
       <div className="mt-7">
@@ -241,7 +247,8 @@ export function SettingsPage() {
               variant="outline"
               className="gap-1.5"
               onClick={() => syncRates.mutate()}
-              disabled={syncRates.isPending || rateStatus === 'disabled'}
+              disabled={demo || syncRates.isPending || rateStatus === 'disabled'}
+              title={demo ? '演示模式不支持汇率同步' : undefined}
             >
               <RefreshCw className={cn('size-3.5', syncRates.isPending && 'animate-spin')} />
               {syncRates.isPending ? '同步中…' : '立即同步'}
@@ -418,26 +425,38 @@ export function SettingsPage() {
           </div>
         </Section>
 
-        <Section
-          title="数据存储"
-          description="数据保存在容器内的 SQLite 文件；部署时请挂载持久化卷。"
-        >
-          <dl className="space-y-2 text-[12px]">
-            <div className="flex flex-wrap items-baseline gap-x-3">
-              <dt className="w-16 text-muted-foreground">数据文件</dt>
-              <dd className="font-mono text-[11.5px] break-all">
-                {settings?.storage?.path ?? 'data/yasubman.db'}
-              </dd>
-            </div>
-            <div className="flex flex-wrap items-baseline gap-x-3">
-              <dt className="w-16 text-muted-foreground">备份建议</dt>
-              <dd className="text-[11.5px] text-muted-foreground">
-                复制该目录下的 .db 与 -wal 文件，或直接使用上方 JSON 导出。
-              </dd>
-            </div>
-          </dl>
-        </Section>
+        {demo ? (
+          <Section
+            title="数据存储"
+            description="演示部署不含任何存储：页面数据是构建时生成的只读快照，写操作会被拒绝。"
+          >
+            <p className="text-[11.5px] leading-relaxed text-muted-foreground">
+              想管理自己的订阅，请参考 README 用 Docker 自建实例，数据保存在你的 SQLite 文件里。
+            </p>
+          </Section>
+        ) : (
+          <Section
+            title="数据存储"
+            description="数据保存在容器内的 SQLite 文件；部署时请挂载持久化卷。"
+          >
+            <dl className="space-y-2 text-[12px]">
+              <div className="flex flex-wrap items-baseline gap-x-3">
+                <dt className="w-16 text-muted-foreground">数据文件</dt>
+                <dd className="font-mono text-[11.5px] break-all">
+                  {settings?.storage?.path ?? 'data/yasubman.db'}
+                </dd>
+              </div>
+              <div className="flex flex-wrap items-baseline gap-x-3">
+                <dt className="w-16 text-muted-foreground">备份建议</dt>
+                <dd className="text-[11.5px] text-muted-foreground">
+                  复制该目录下的 .db 与 -wal 文件，或直接使用上方 JSON 导出。
+                </dd>
+              </div>
+            </dl>
+          </Section>
+        )}
 
+        {demo ? null : (
         <Section
           title="Agent 接入"
           description="内置 MCP 端点（Streamable HTTP，仅 POST），Agent 可查询、新增、修改、暂停与删除订阅。"
@@ -464,7 +483,9 @@ export function SettingsPage() {
             ；工具清单见 README。
           </p>
         </Section>
+        )}
 
+        {demo ? null : (
         <Section title="危险操作">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/25 bg-destructive/[0.03] px-4 py-3.5">
             <div>
@@ -478,6 +499,7 @@ export function SettingsPage() {
             </Button>
           </div>
         </Section>
+        )}
 
         <footer className="flex flex-wrap items-center justify-between gap-2 py-6 text-[10.5px] text-muted-foreground">
           <span>yasubman · 订阅台账 v0.1.0</span>

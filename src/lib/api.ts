@@ -41,6 +41,9 @@ export interface SubscriptionFilters {
 }
 
 export const api = {
+  /** 探测运行环境：demo 部署会返回 { ok: true, demo: true } */
+  health: () => request<{ ok: boolean; demo?: boolean }>('/health'),
+
   stats: () => request<Stats>('/stats'),
 
   monthlyStats: (limit = 24) => request<MonthlyTotal[]>(`/stats/months?limit=${limit}`),
