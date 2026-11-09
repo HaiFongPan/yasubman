@@ -13,10 +13,11 @@
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.server.json --noEmit",
     "seed:icons": "node scripts/gen-icons.mjs",
     "demo:snapshot": "node scripts/gen-demo-snapshot.mjs",
-    "demo:deploy": "npm run build && npx --yes wrangler@latest pages deploy dist --project-name yasubman-demo",
-    "demo:dev": "npm run demo:snapshot && npm run build && npx --yes wrangler@latest pages dev dist --port 4173",
+    "demo:deploy": "npm run build:web && npx --yes wrangler@latest pages deploy dist --project-name yasubman-demo",
+    "demo:dev": "npm run demo:snapshot && npm run build:web && npx --yes wrangler@latest pages dev dist --port 4173",
     "verify:crud": "node scripts/verify-crud.mjs",
-    "verify:mcp": "node scripts/verify-mcp.mjs"
+    "verify:mcp": "node scripts/verify-mcp.mjs",
+    "build:web": "tsc -p tsconfig.app.json --noEmit && vite build"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

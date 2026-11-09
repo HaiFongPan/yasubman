@@ -135,12 +135,14 @@ environment:
 
 1. Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**，选 `HaiFongPan/yasubman`、分支 `main`
 2. 构建设置：
-   - Build command：`npm run build`
+   - Build command：`npm run build:web`（只构建前端，不需要服务端 bundle）
    - Build output directory：`dist`
    - 环境变量：`NODE_VERSION` = `24`
-3. 项目名用 `yasubman-demo`（与 `wrangler.toml` 里的 `name` 一致，否则构建会报项目名不匹配）
+3. 项目名任意（如 `yasubman-demo`）。仓库里没有 `wrangler.toml`，所以不会出现“项目名不匹配”的报错。
 
-`functions/` 目录会被自动识别成 Pages Functions。`demo/snapshot.json` 已提交仓库，所以构建时不需要生成快照（也就不需要 better-sqlite3 的原生编译）。
+`functions/` 目录会被自动识别成 Pages Functions。`demo/snapshot.json` 已提交仓库，构建时不需要生成快照，也就不需要 better-sqlite3 的原生编译。
+
+如果 `npm ci` 在安装阶段因 better-sqlite3 的 `node-gyp rebuild` 失败，加一个环境变量 `NPM_FLAGS` = `--ignore-scripts` 即可：demo 的构建与运行都不需要这个原生模块。
 
 ### 方式二：本地 CLI
 

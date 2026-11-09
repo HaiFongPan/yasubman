@@ -1,5 +1,0 @@
-# Cloudflare Pages 只读 demo 部署配置
-# 用法：npm run demo:snapshot && npm run demo:deploy
-name = "yasubman-demo"
-pages_build_output_dir = "dist"
-compatibility_date = "2025-01-01"
