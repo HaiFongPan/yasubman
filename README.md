@@ -131,14 +131,27 @@ environment:
 
 想给别人看界面又不想暴露自己的数据，可以部署一份不含任何存储的演示版：前端静态资源 + 一个把 API 换成构建时快照的 Pages Function。
 
+### 方式一：Cloudflare 后台连 GitHub（推荐，push 即更新）
+
+1. Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**，选 `HaiFongPan/yasubman`、分支 `main`
+2. 构建设置：
+   - Build command：`npm run build`
+   - Build output directory：`dist`
+   - 环境变量：`NODE_VERSION` = `24`
+3. 项目名用 `yasubman-demo`（与 `wrangler.toml` 里的 `name` 一致，否则构建会报项目名不匹配）
+
+`functions/` 目录会被自动识别成 Pages Functions。`demo/snapshot.json` 已提交仓库，所以构建时不需要生成快照（也就不需要 better-sqlite3 的原生编译）。
+
+### 方式二：本地 CLI
+
 ```bash
-npm run demo:snapshot   # 生成 demo/snapshot.json（脱敏示例数据 + 12 个月历史流水）
-npm run demo:deploy     # 构建并发布到 Cloudflare Pages
+npx wrangler login      # 浏览器 OAuth，一次即可
+npm run demo:deploy     # 构建并发布（项目名 yasubman-demo）
 ```
 
-首次部署需要登录一次（浏览器 OAuth）：`npx wrangler login`。项目名在 `wrangler.toml` 里（默认 `yasubman-demo`，对应 `https://yasubman-demo.pages.dev`）。
+改了示例数据或汇率后需要用 `npm run demo:snapshot` 重新生成 `demo/snapshot.json`；走方式一的话，提交这个文件后 CF 会自动重建。本地预览完整 demo（含 Functions）：`npm run demo:dev` → http://localhost:4173。
 
-本地预览完整 demo（含 Functions）：`npm run demo:dev` → http://localhost:4173。
+若 CF 构建在 `npm ci` 阶段因 better-sqlite3 原生编译失败，加环境变量 `NPM_FLAGS=--ignore-scripts`（构建与运行时都不需要这个原生模块）。
 
 演示版的边界：
 
