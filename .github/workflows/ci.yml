@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify API and MCP
+        env:
+          FX_PROVIDER: off
+          SQLITE_PATH: /tmp/ci.db
+          PORT: '3999'
+        run: |
+          rm -f /tmp/ci.db*
+          npx tsx server/index.ts > /tmp/api.log 2>&1 &
+          for _ in $(seq 1 30); do
+            curl -sf http://localhost:3999/api/health && break
+            sleep 1
+          done
+          BASE_URL=http://localhost:3999 node scripts/verify-crud.mjs
+          MCP_URL=http://localhost:3999/mcp node scripts/verify-mcp.mjs
+
+      - name: Upload API log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-log
+          path: /tmp/api.log

@@ -1,0 +1,50 @@
+name: Bug 报告
+description: 报告可复现的问题
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 问题描述
+      description: 发生了什么，期望是什么
+    validations:
+      required: true
+  - type: dropdown
+    id: deploy
+    attributes:
+      label: 部署方式
+      options:
+        - Docker（compose）
+        - Docker（docker run）
+        - 本地 npm run dev
+        - 本地 build + start
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 版本 / commit
+      placeholder: v0.1.0 或 commit sha
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开 ...
+        2. 点击 ...
+        3. 看到 ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志
+      description: docker compose logs 或浏览器 console，注意去掉敏感信息
+      render: shell
+  - type: input
+    id: env
+    attributes:
+      label: 环境
+      placeholder: Ubuntu 24.04 / Node 24 / Chrome 140

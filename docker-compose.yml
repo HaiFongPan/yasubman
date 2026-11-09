@@ -1,0 +1,24 @@
+services:
+  yasubman:
+    build: .
+    image: yasubman:latest
+    container_name: yasubman
+    restart: unless-stopped
+    # 仅绑定本机回环，由 tailscale serve 提供 HTTPS 入口；
+    # 如需直接走 tailnet IP，改成 "100.x.y.z:3000:3000"
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      # 命名卷开箱即用；若改用宿主机目录（./data:/data），
+      # 需先执行 sudo chown -R 1000:1000 ./data
+      - yasubman-data:/data
+    environment:
+      - TZ=Asia/Shanghai
+      # 可选：启用 HTTP 基础认证（默认关闭，Tailscale 内部已隔离）
+      # - APP_USER=alice
+      # - APP_PASSWORD=一串足够长的密码
+
+volumes:
+  yasubman-data:
+    # 固定卷名，避免 compose 自动加项目前缀，方便备份脚本引用
+    name: yasubman-data

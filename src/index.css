@@ -1,0 +1,339 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans:
+    'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-mono:
+    'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+
+  --radius-sm: calc(var(--radius) - 0.25rem);
+  --radius-md: calc(var(--radius) - 0.125rem);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 0.25rem);
+}
+
+:root {
+  --radius: 0.625rem;
+
+  --background: #ffffff;
+  --foreground: #1a1915;
+  --card: #ffffff;
+  --card-foreground: #1a1915;
+  --popover: #ffffff;
+  --popover-foreground: #1a1915;
+  --primary: #1a1915;
+  --primary-foreground: #fbfaf7;
+  --secondary: #f2f1ed;
+  --secondary-foreground: #1a1915;
+  --muted: #f5f4f1;
+  --muted-foreground: #6e6c66;
+  --accent: #f2f1ed;
+  --accent-foreground: #1a1915;
+  --destructive: #b3402c;
+  --destructive-foreground: #fff8f6;
+  --border: #e7e5df;
+  --input: #dcd9d1;
+  --ring: #8c8779;
+  --brand: #2e6b4f;
+  --brand-soft: #e6ede7;
+}
+
+.dark {
+  --background: #12120f;
+  --foreground: #f0ede3;
+  --card: #191815;
+  --card-foreground: #f0ede3;
+  --popover: #1c1b18;
+  --popover-foreground: #f0ede3;
+  --primary: #f0ede3;
+  --primary-foreground: #16150f;
+  --secondary: #23221d;
+  --secondary-foreground: #f0ede3;
+  --muted: #201f1b;
+  --muted-foreground: #98927f;
+  --accent: #23221d;
+  --accent-foreground: #f0ede3;
+  --destructive: #e0735a;
+  --destructive-foreground: #1c0f0b;
+  --border: #2c2a24;
+  --input: #3b3830;
+  --ring: #6e6959;
+  --brand: #7fb79a;
+  --brand-soft: #1b2a23;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv05' 1;
+    overscroll-behavior-y: none;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 22%, transparent);
+  }
+
+  input[type='date']::-webkit-calendar-picker-indicator {
+    opacity: 0.45;
+    cursor: pointer;
+  }
+
+  .dark input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.5;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-rise {
+  animation: rise 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.service-icon {
+  background-color: color-mix(in oklab, var(--icon-color) 12%, transparent);
+  color: var(--icon-color);
+}
+
+.dark .service-icon {
+  background-color: color-mix(in oklab, var(--icon-color) 18%, transparent);
+  color: color-mix(in oklab, var(--icon-color) 72%, white);
+}
+
+/* ── 收据 ───────────────────────────────────────────── */
+.receipt-sheet {
+  width: 372px;
+  background: #ffffff;
+  color: #141414;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 24px 22px 18px;
+  border: 1px solid #e2ded4;
+  box-shadow: 0 18px 40px -28px rgba(20, 18, 12, 0.35);
+}
+
+.receipt-sheet * {
+  color: inherit;
+}
+
+.receipt-brand {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+}
+
+.receipt-kind {
+  margin-top: 4px;
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  color: #5a564c;
+}
+
+.receipt-month {
+  margin-top: 14px;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+}
+
+.receipt-divider {
+  margin: 13px 0;
+  border-top: 1px solid #141414;
+}
+
+.receipt-divider.dashed {
+  border-top-style: dashed;
+}
+
+.receipt-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  color: #5a564c;
+}
+
+.receipt-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.receipt-item {
+  display: grid;
+  grid-template-columns: 33px 14px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.receipt-date {
+  font-size: 10px;
+  color: #5a564c;
+}
+
+.receipt-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.15);
+}
+
+.receipt-initials {
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.receipt-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.receipt-amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.receipt-empty {
+  padding: 20px 0;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: #6b665a;
+}
+
+.receipt-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.receipt-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: #5a564c;
+}
+
+.receipt-barcode {
+  display: flex;
+  height: 26px;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.receipt-barcode span {
+  display: block;
+  height: 100%;
+  background: #141414;
+}
+
+@media print {
+  @page {
+    margin: 10mm;
+  }
+
+  body {
+    background: #ffffff;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .receipt-sheet,
+  .receipt-sheet * {
+    visibility: visible;
+  }
+
+  .receipt-sheet {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 76mm;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    transform: translateX(-50%);
+  }
+}
