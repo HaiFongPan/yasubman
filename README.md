@@ -7,6 +7,9 @@ yet another subscription manager。自托管的订阅管理与支出统计。
 [![CI](https://github.com/HaiFongPan/yasubman/actions/workflows/ci.yml/badge.svg)](https://github.com/HaiFongPan/yasubman/actions/workflows/ci.yml)
 [![Docker](https://github.com/HaiFongPan/yasubman/actions/workflows/docker.yml/badge.svg)](https://github.com/HaiFongPan/yasubman/actions/workflows/docker.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-black.svg)](LICENSE)
+[![Live demo](https://img.shields.io/badge/demo-live-black.svg)](https://yasubman-demo.leopan-me.workers.dev/)
+
+**在线 demo**：https://yasubman-demo.leopan-me.workers.dev/ （只读快照，不需要部署）
 
 ## 截图
 
@@ -129,6 +132,8 @@ environment:
 
 ## 只读 demo（Cloudflare Workers，免费）
 
+线上示例：**https://yasubman-demo.leopan-me.workers.dev/**
+
 想给别人看界面又不想暴露自己的数据，可以部署一份不含任何存储的演示版：静态前端 + 一个把 API 换成构建时快照的 Worker。静态资源请求不消耗额度，`/api/*` 才走 Worker。
 
 ```bash
@@ -148,7 +153,7 @@ Cloudflare Dashboard → **Workers & Pages** → **Create** → 连接 Git 仓�
 | Deploy command | 保持默认 `npx wrangler deploy` |
 | Root directory | 留空 |
 
-项目名与 `wrangler.jsonc` 里的 `name` 一致（默认 `yasubman-demo`），部署后域名形如 `https://yasubman-demo.<你的子域>.workers.dev`。
+项目名与 `wrangler.jsonc` 里的 `name` 一致（默认 `yasubman-demo`），部署后域名形如 `https://yasubman-demo.<你的子域>.workers.dev`；当前示例为 `https://yasubman-demo.leopan-me.workers.dev/`。
 
 `demo/snapshot.json` 已提交仓库，构建时不需要生成快照，也就不需要 better-sqlite3 的原生编译。若 `npm ci` 因它的 `node-gyp rebuild` 失败，加环境变量 `NPM_FLAGS` = `--ignore-scripts`。
 
