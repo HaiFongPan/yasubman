@@ -18,6 +18,7 @@ import {
 } from '../shared/types';
 import { convertMinor, fromMinor } from '../shared/money';
 import { advanceCycleDate, daysUntil, nextCycleAfter, nextDueDate, todayISO } from '../shared/cycle';
+import { settleDue } from './settle';
 import { addDays, addMonths, endOfMonth, format, startOfMonth } from 'date-fns';
 import type { PaymentInput, CatalogInput, SubscriptionInput } from '../shared/validation';
 
@@ -556,7 +557,13 @@ export function createSubscription(input: SubscriptionInput): Subscription {
       ts,
     });
 
-  return getSubscription(Number(result.lastInsertRowid));
+  const id = Number(result.lastInsertRowid);
+  // 首次记录：起始日已到（next_due <= 今天）时就地结算，立刻产生首笔流水，不等到次日 00:05
+  if (input.status === 'active') {
+    settleDue({ currencies, base: baseCurrency(), subscriptionId: id });
+  }
+
+  return getSubscription(id);
 }
 
 export function updateSubscription(id: number, input: SubscriptionInput): Subscription {
