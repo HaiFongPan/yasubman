@@ -65,6 +65,9 @@ async function main() {
   check('金额与单期折合正确', created.amount === 9.9 && created.amountBase > 0, created);
   check('返回下次续费与基准币种', /^\d{4}-\d{2}-\d{2}$/.test(created.nextDue) && created.baseCurrency === 'CNY', created);
 
+  const firstPays = payload(await client.callTool({ name: 'list_payments', arguments: { subscriptionId: created.id } }));
+  check('create_subscription 补最近一期流水', firstPays.length === 1 && firstPays[0].source === 'auto' && firstPays[0].amount === 9.9, firstPays);
+
   const updated = payload(
     await client.callTool({
       name: 'update_subscription',
@@ -131,7 +134,7 @@ async function main() {
   }));
   check('add_payment 补录流水', pay.id > 0 && pay.paidOn === today && pay.amount === 9.9, pay);
   const pays = payload(await client.callTool({ name: 'list_payments', arguments: { subscriptionId: created.id } }));
-  check('list_payments 返回流水', pays.length === 1 && pays[0].amount === 9.9 && pays[0].source === 'manual', pays);
+  check('list_payments 返回流水', pays.some((item) => item.id === pay.id && item.amount === 9.9 && item.source === 'manual') && pays.length === 2, pays);
   const delPay = payload(await client.callTool({ name: 'delete_payment', arguments: { id: pay.id } }));
   check('delete_payment 删除流水', delPay.deleted === true, delPay);
   check('统计包含活跃订阅', stats.activeCount >= 1, stats.activeCount);

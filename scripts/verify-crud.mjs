@@ -268,6 +268,25 @@ async function main() {
   check('扣费日未到的订阅不预生成流水', futurePayments.body?.length === 0, futurePayments.body);
   await req(`/subscriptions/${futureSub.body?.id}`, { method: 'DELETE' });
 
+  const pastAnchor = new Date(Date.now() - 90 * 86_400_000).toISOString().slice(0, 10);
+  const pastSub = await req('/subscriptions', {
+    method: 'POST',
+    body: JSON.stringify(
+      subPayload({
+        name: 'Verify Past Anchor',
+        amount: 30,
+        currency: 'CNY',
+        cycle: 'monthly',
+        anchorDate: pastAnchor,
+        category: 'ai',
+      }),
+    ),
+  });
+  const pastPayments = await req(`/subscriptions/${pastSub.body?.id}/payments`);
+  check('起始日在过去的订阅补最近一期流水', pastPayments.body?.length === 1 && pastPayments.body?.[0]?.paidOn > pastAnchor && pastPayments.body?.[0]?.paidOn <= new Date().toISOString().slice(0, 10), pastPayments.body);
+  check('补期后下次扣费日在今天之后', pastSub.body?.nextDue > new Date().toISOString().slice(0, 10), pastSub.body?.nextDue);
+  await req(`/subscriptions/${pastSub.body?.id}`, { method: 'DELETE' });
+
   const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
   const manual = await req(`/subscriptions/${ledgerId}/payments`, {
     method: 'POST',
