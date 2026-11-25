@@ -233,20 +233,59 @@ async function main() {
     ),
   });
   const ledgerId = ledgerSub.body?.id;
-  check('到期日等于今天的订阅', ledgerSub.status === 201 && ledgerSub.body?.nextDue === new Date().toISOString().slice(0, 10), {
+  check('到期日等于今天的订阅创建后即结算', ledgerSub.status === 201 && ledgerSub.body?.nextDue > new Date().toISOString().slice(0, 10), {
     nextDue: ledgerSub.body?.nextDue,
   });
 
+  const ledgerFirst = await req(`/subscriptions/${ledgerId}/payments`);
+  check('新增时扣费日已到立即生成首笔流水', ledgerFirst.body?.length === 1 && ledgerFirst.body?.[0]?.source === 'auto' && ledgerFirst.body?.[0]?.paidOn === new Date().toISOString().slice(0, 10), ledgerFirst.body);
+
   const billing = await req('/billing/run', { method: 'POST' });
-  check('POST /billing/run 生成到期流水', billing.status === 200 && billing.body?.generated >= 1, billing.body);
+  check('已结算过则重复结算不生成流水', billing.status === 200 && billing.body?.generated === 0, billing.body);
 
   const ledgerPayments = await req(`/subscriptions/${ledgerId}/payments`);
   check('流水记录金额与来源', ledgerPayments.body?.[0]?.amountMinor === 3000 && ledgerPayments.body?.[0]?.source === 'auto', ledgerPayments.body?.[0]);
   const ledgerAfter = await req(`/subscriptions/${ledgerId}`);
-  check('结算后下次扣费日顺延', ledgerAfter.body?.nextDue > ledgerSub.body?.nextDue && ledgerAfter.body?.lastPaidOn === new Date().toISOString().slice(0, 10), {
-    before: ledgerSub.body?.nextDue,
-    after: ledgerAfter.body?.nextDue,
+  check('结算后下次扣费日顺延', ledgerAfter.body?.nextDue > new Date().toISOString().slice(0, 10) && ledgerAfter.body?.lastPaidOn === new Date().toISOString().slice(0, 10), {
+    nextDue: ledgerAfter.body?.nextDue,
+    lastPaidOn: ledgerAfter.body?.lastPaidOn,
   });
+
+  const futureSub = await req('/subscriptions', {
+    method: 'POST',
+    body: JSON.stringify(
+      subPayload({
+        name: 'Verify Future',
+        amount: 30,
+        currency: 'CNY',
+        cycle: 'monthly',
+        anchorDate: new Date(Date.now() + 10 * 86_400_000).toISOString().slice(0, 10),
+        category: 'ai',
+      }),
+    ),
+  });
+  const futurePayments = await req(`/subscriptions/${futureSub.body?.id}/payments`);
+  check('扣费日未到的订阅不预生成流水', futurePayments.body?.length === 0, futurePayments.body);
+  await req(`/subscriptions/${futureSub.body?.id}`, { method: 'DELETE' });
+
+  const pastAnchor = new Date(Date.now() - 90 * 86_400_000).toISOString().slice(0, 10);
+  const pastSub = await req('/subscriptions', {
+    method: 'POST',
+    body: JSON.stringify(
+      subPayload({
+        name: 'Verify Past Anchor',
+        amount: 30,
+        currency: 'CNY',
+        cycle: 'monthly',
+        anchorDate: pastAnchor,
+        category: 'ai',
+      }),
+    ),
+  });
+  const pastPayments = await req(`/subscriptions/${pastSub.body?.id}/payments`);
+  check('起始日在过去的订阅补最近一期流水', pastPayments.body?.length === 1 && pastPayments.body?.[0]?.paidOn > pastAnchor && pastPayments.body?.[0]?.paidOn <= new Date().toISOString().slice(0, 10), pastPayments.body);
+  check('补期后下次扣费日在今天之后', pastSub.body?.nextDue > new Date().toISOString().slice(0, 10), pastSub.body?.nextDue);
+  await req(`/subscriptions/${pastSub.body?.id}`, { method: 'DELETE' });
 
   const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
   const manual = await req(`/subscriptions/${ledgerId}/payments`, {
